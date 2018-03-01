@@ -1,0 +1,13 @@
+{
+    "name": "keven/instantiator",
+    "description": "Instantiate an object based on an array of its constructor parameters.",
+    "license": "MIT",
+    "require-dev": {
+        "phpunit/phpunit": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Keven\\Instantiator\\": "src"
+        }
+    }
+}
