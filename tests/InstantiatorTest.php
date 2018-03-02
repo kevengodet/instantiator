@@ -8,12 +8,14 @@ use Keven\Instantiator\Tests\Fixtures\ClassWithZeroArg;
 use Keven\Instantiator\Tests\Fixtures\ClassWithPrivateConstructor;
 use Keven\Instantiator\Tests\Fixtures\ClassWithOnlyRequiredArgs;
 use Keven\Instantiator\Tests\Fixtures\ClassWithOptionalArgs;
+use Keven\Instantiator\Tests\Fixtures\ClassWithNullableArg;
 
 require_once __DIR__.'/fixtures/ClassWithoutConstructor.php';
 require_once __DIR__.'/fixtures/ClassWithZeroArg.php';
 require_once __DIR__.'/fixtures/ClassWithPrivateConstructor.php';
 require_once __DIR__.'/fixtures/ClassWithOnlyRequiredArgs.php';
 require_once __DIR__.'/fixtures/ClassWithOptionalArgs.php';
+require_once __DIR__.'/fixtures/ClassWithNullableArg.php';
 
 class InstantiatorTest extends \PHPUnit\Framework\TestCase
 {
@@ -80,5 +82,18 @@ class InstantiatorTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('a', $obj4->foo);
         $this->assertEquals(2, $obj4->bar);
         $this->assertEquals([], $obj4->baz);
+    }
+
+    function testNullableArgument()
+    {
+        $obj1 = (new Instantiator)->instantiate(ClassWithNullableArg::class, ['foo' => 'a', 'bar' => 3]);
+        $this->assertInstanceOf(ClassWithNullableArg::class, $obj1);
+        $this->assertEquals('a', $obj1->foo);
+        $this->assertEquals(3, $obj1->bar);
+
+        $obj2 = (new Instantiator)->instantiate(ClassWithNullableArg::class, ['foo' => 'a']);
+        $this->assertInstanceOf(ClassWithNullableArg::class, $obj2);
+        $this->assertEquals('a', $obj2->foo);
+        $this->assertEquals(null, $obj2->bar);
     }
 }

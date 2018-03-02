@@ -26,10 +26,10 @@ final class Instantiator
             if (isset($args[$param->getName()])) {
                 $params[] = $args[$param->getName()];
             } else {
-                if (!$param->isOptional()) {
+                if (!$param->allowsNull() && !$param->isOptional()) {
                     throw ArgumentIsRequired::fromClassAndArgumentNames($className, $param->getName());
                 }
-                $params[] = $param->getDefaultValue();
+                $params[] = $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null;
             }
         }
 
