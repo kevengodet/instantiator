@@ -9,30 +9,52 @@ final class Instantiator
 {
     public function instantiate(string $className, array $args = [])
     {
-        $params = [];
+        return ($this->prepare($className, $args))();
+    }
+
+    public function partial(string $className, array $args = []): callable
+    {
+        return $this->prepare($className, $args, false);
+    }
+
+    private function prepare(string $className, array $args = [], bool $throwExceptionOnMissingArgument = true): callable
+    {
         $class = new \ReflectionClass($className);
 
         if (!$constructor = $class->getConstructor()) {
-            return $class->newInstanceWithoutConstructor();
+            return function() use ($class) { return $class->newInstanceWithoutConstructor(); };
         }
 
         if (!$constructor->isPublic()) {
             throw ConstructorIsNotPublic::fromClassName($className);
         }
 
+        $allArgs = [];
+        $missingArgs = [];
         foreach($constructor->getParameters() as $param) {
             /* @var $param \ReflectionParameter */
 
             if (isset($args[$param->getName()])) {
-                $params[] = $args[$param->getName()];
+                $allArgs[] = $args[$param->getName()];
             } else {
                 if (!$param->allowsNull() && !$param->isOptional()) {
-                    throw ArgumentIsRequired::fromClassAndArgumentNames($className, $param->getName());
+                    if ($throwExceptionOnMissingArgument) {
+                        throw ArgumentIsRequired::fromClassAndArgumentNames($className, $param->getName());
+                    }
+
+                    $missingArgs[] = $param->getName();
+                    continue;
                 }
-                $params[] = $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null;
+                $allArgs[] = $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null;
             }
         }
 
-        return $class->newInstanceArgs($params);
+        return function ($additionalArgs = []) use ($class, $allArgs, $missingArgs) {
+            if ($missingArgs && $stillMissingKeys = array_diff_key($missingArgs, $additionalArgs)) {
+                throw ArgumentIsRequired::fromClassAndArgumentNames($class->getName(), key($stillMissingKeys));
+            }
+
+            return $class->newInstanceArgs(array_merge($allArgs, $additionalArgs));
+        };
     }
 }

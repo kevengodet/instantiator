@@ -31,3 +31,19 @@ $user = (new Instantiator)->instantiate(
             ]
         );
 ```
+
+You can also partially apply arguments:
+```php
+<?php
+
+// ...
+
+$userCreator = (new Instantiator)->partial(
+            User::class,
+            [
+                'emailAddress' => 'john@example.com',
+            ]
+        );
+
+$user = $userCreator(['password' => 'Tr0ub4dor&3']);
+```
